@@ -68,6 +68,7 @@ const recipeSchema = new mongoose.Schema(
           "Low-Calorie",
           "High-Protein",
           "Quick Meal",
+          "Healthy"
         ],
         message: "{VALUE} is invalid ",
       },

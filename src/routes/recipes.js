@@ -100,20 +100,6 @@ RecipeRouter.get("/search-recipes", userAuth, async (req, res) => {
   }
 });
 
-// RecipeRouter.get("/get-recipe-by-id/:recipeId", userAuth, async (req, res) => {
-//   const { recipeId } = req.params;
-//   try {
-//     const recipe = await Recipe.findById(recipeId).populate(
-//       "recipeAuthorId",
-//       "userName"
-//     );
-//     res.status(200).json({ message: "Recipe fetched successfully", recipe });
-//   } catch (error) {
-//     console.log("error in fetching recipe", error);
-//     res.status(400).json({ message: "Recipe fetching failed", error });
-//   }
-// });
-
 RecipeRouter.patch("/edit-recipe/:recipeId", userAuth, async (req, res) => {
   try {
     const { recipeId } = req.params;
@@ -198,6 +184,37 @@ RecipeRouter.delete("/delete-recipe/:recipeId", userAuth, async (req, res) => {
       message: "Recipe deletion failed",
       error: error.message,
     });
+  }
+});
+
+RecipeRouter.get("/add-to-favorites/:recipeId", userAuth, async (req, res) => {
+  try {
+    const { recipeId } = req.params;
+    const user = req.user;
+    console.log("user", user);
+    const recipe = await Recipe.findById(recipeId);
+    if (!recipe) {
+      return res.status(404).json({ message: "Recipe not found" });
+    }
+    user.favoriteRecipes.push(recipeId);
+    await user.save();
+    res.status(200).json({ message: "Recipe added to favorites", user });
+  } catch (error) {
+    console.log("error in adding to favorites", error);
+    res.status(400).json({ message: "Adding to favorites failed", error });
+  }
+});
+
+RecipeRouter.get("/get-favorites", userAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    const favorites = await Recipe.find({ _id: { $in: user.favoriteRecipes } });
+    res
+      .status(200)
+      .json({ message: "Favorites fetched successfully", favorites });
+  } catch (error) {
+    console.log("error in fetching favorites", error);
+    res.status(400).json({ message: "Fetching favorites failed", error });
   }
 });
 

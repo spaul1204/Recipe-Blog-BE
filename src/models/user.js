@@ -23,6 +23,10 @@ const userSchema = mongoose.Schema(
       type: String,
       default: "I am a new user",
     },
+    favoriteRecipes: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "Recipe",
+    },
   },
   {
     timestamps: true,
