@@ -4,6 +4,8 @@ const authRouter = express.Router();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
+const isProd = process.env.NODE_ENV === "production";
+
 authRouter.post("/signup", async (req, res) => {
   const { userName, email, password } = req.body;
   try {
@@ -48,7 +50,7 @@ authRouter.post("/login", async (req, res) => {
       throw new Error("Invalid credentials");
     }
     //comparing password
-    const isPasswordValid = bcrypt.compare(password, user.password);
+    const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       throw new Error("Invalid credentials");
     }
@@ -56,7 +58,13 @@ authRouter.post("/login", async (req, res) => {
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET_KEY, {
       expiresIn: "1d",
     });
-    res.cookie("token", token);
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: isProd, // true in prod (HTTPS), false in dev
+      sameSite: isProd ? "none" : "lax",
+      path: "/", // so it’s sent for /api/* and any subpath
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    });
     res.status(200).json({
       message: "Login successful",
       data: user,
